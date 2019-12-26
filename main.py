@@ -50,7 +50,7 @@ class Jumper:
 
         self.screen = pygame.display.set_mode((800, 600))
 
-        self.green = pygame.image.load("data/platform.png").convert_alpha()
+        self.platform = pygame.image.load("data/platform.png").convert_alpha()
 
         pygame.font.init()
 
@@ -80,11 +80,16 @@ class Jumper:
         # основные параметры
         self.platforms = [[400, 500, 0, 0]]
         self.springs = []
+        # параметр изменения камеры по оси oY
         self.cameray = 0
+        # высота прыжка
         self.jump = 0
-        self.direction = 0  # параметр направления
-        self.gravity = 0  # параметр гравитации (силы тяжести)
-        self.xmovement = 0  # параметр горизонтального движения
+        # параметр направления
+        self.direction = 0
+        # параметр гравитации (силы тяжести)
+        self.gravity = 0
+        # параметр горизонтального движения
+        self.xmovement = 0
 
     def updatePlayer(self):
         """ движение главного героя, изменение его образа"""
@@ -136,9 +141,10 @@ class Jumper:
                 self.screen.blit(self.playerLeft, (self.playerx, self.playery - self.cameray))
 
     def updatePlatforms(self):
+        """ обновление платформ"""
 
         for p in self.platforms:
-            rect = pygame.Rect(p[0], p[1], self.green.get_width() - 10, self.green.get_height())
+            rect = pygame.Rect(p[0], p[1], self.platform.get_width() - 10, self.platform.get_height())
             player = pygame.Rect(self.playerx, self.playery, self.playerRight.get_width() - 10,
                                  self.playerRight.get_height())
             if rect.colliderect(player) and self.gravity and self.playery < (p[1] - self.cameray):
@@ -178,7 +184,7 @@ class Jumper:
                 self.platforms.pop(0)
                 self.score += 7
             if p[2] == 0:
-                self.screen.blit(self.green, (p[0], p[1] - self.cameray))
+                self.screen.blit(self.platform, (p[0], p[1] - self.cameray))
             elif p[2] == 1:
                 self.screen.blit(self.blue, (p[0], p[1] - self.cameray))
             elif p[2] == 2:
@@ -187,12 +193,15 @@ class Jumper:
                 else:
                     self.screen.blit(self.broken_1, (p[0], p[1] - self.cameray))
 
+        # работа с пружинами
         for spring in self.springs:
             if spring[-1]:
                 self.screen.blit(self.spring_1, (spring[0], spring[1] - self.cameray))
 
             else:
                 self.screen.blit(self.spring, (spring[0], spring[1] - self.cameray))
+
+            # изменение высоты прыжка при запрыгивании на пружину
             if pygame.Rect(spring[0], spring[1], self.spring.get_width(), self.spring.get_height()).colliderect(
                     pygame.Rect(self.playerx, self.playery, self.playerRight.get_width(),
                                 self.playerRight.get_height())):
