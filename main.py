@@ -2,6 +2,45 @@ import pygame
 from pygame.locals import *
 import sys
 import random
+import os
+import time
+
+WIDTH = 480
+HEIGHT = 600
+FPS = 60
+
+pygame.init()
+pygame.mixer.init()
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Начало!")
+clock = pygame.time.Clock()
+font_name = pygame.font.match_font('arial')
+WHITE = (255, 255, 255)
+
+
+def draw_text(surf, text, size, x, y):
+    font = pygame.font.Font(font_name, size)
+    text_surface = font.render(text, True, WHITE)
+    text_rect = text_surface.get_rect()
+    text_rect.midtop = (x, y)
+    surf.blit(text_surface, text_rect)
+
+
+def show_go_screen():
+    draw_text(screen, "Начало!", 64, WIDTH / 2, HEIGHT / 4)
+    draw_text(screen, "Используйте стрелки для премещения ", 22,
+              WIDTH / 2, HEIGHT / 2)
+    draw_text(screen, "Нажмите на стрелку вверх и закройте", 18, WIDTH / 2, HEIGHT * 3 / 4)
+    draw_text(screen, "это окно для начала игры", 18, WIDTH / 2, HEIGHT * 4 / 5)
+    pygame.display.flip()
+    waiting = True
+    while waiting:
+        clock.tick(FPS)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            if event.type == pygame.KEYUP:
+                waiting = False
 
 
 class Jumper:
@@ -119,6 +158,7 @@ class Jumper:
                         p[-1] = 1
 
     def drawPlatforms(self):
+        """ отображение платформ"""
 
         for p in self.platforms:
             check = self.platforms[1][1] - self.cameray
@@ -160,32 +200,44 @@ class Jumper:
                 self.cameray -= 50
 
     def generatePlatforms(self):
+        """ генерация платформ"""
 
         on = 600
         while on > -100:
             x = random.randint(0, 700)
             platform = random.randint(0, 1000)
             if platform < 800:
+                # основная платформа
+
                 platform = 0
             elif platform < 900:
+                # "лжеплатформа"
+
                 platform = 1
             else:
+                # движущаяся платформа
+
                 platform = 2
+
+            # генерация на случайной координате случайной платформы
             self.platforms.append([x, on, platform, 0])
             on -= 50
 
     def drawGrid(self):
+        """ фон в виде клетчатой бумаги"""
 
         for x in range(80):
             pygame.draw.line(self.screen, (222, 222, 222), (x * 12, 0), (x * 12, 600))
             pygame.draw.line(self.screen, (222, 222, 222), (0, x * 12), (800, x * 12))
 
     def run(self):
+        """ запуск игры"""
 
         clock = pygame.time.Clock()
         self.generatePlatforms()
 
         while True:
+            # отрисовка основного экрана
 
             self.screen.fill((255, 255, 255))
             clock.tick(60)
@@ -203,6 +255,7 @@ class Jumper:
                 self.playerx = 400
                 self.playery = 400
 
+            # основные действия
             self.drawGrid()
             self.drawPlatforms()
             self.updatePlayer()
@@ -211,4 +264,22 @@ class Jumper:
             pygame.display.flip()
 
 
+game_over = True
+running = True
+while running:
+    if game_over:
+        show_go_screen()
+        game_over = False
+        all_sprites = pygame.sprite.Group()
+        score = 0
+
+    # Держим цикл на правильной скорости
+    clock.tick(FPS)
+    # Ввод процесса (события)
+    for event in pygame.event.get():
+        # проверка для закрытия окна
+        if event.type == pygame.QUIT:
+            running = False
+
+# запуск
 Jumper().run()
