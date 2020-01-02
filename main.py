@@ -63,7 +63,7 @@ class Jumper:
         # прайсы и их изображения
         self.font = pygame.font.SysFont("Arial", 25)
         self.platform = pygame.image.load("data/platform.png").convert_alpha()
-        self.blue = pygame.image.load("data/blue.png").convert_alpha()
+        self.moving = pygame.image.load("data/moving.png").convert_alpha()
         self.broken = pygame.image.load("data/broken.png").convert_alpha()
         self.broken_1 = pygame.image.load("data/broken_1.png").convert_alpha()
         self.playerRight = pygame.image.load("data/Melissa_Jump2_R.png").convert_alpha()
@@ -72,6 +72,8 @@ class Jumper:
         self.playerLeft_1 = pygame.image.load("data/Melissa_Fall2_L.png").convert_alpha()
         self.spring = pygame.image.load("data/spring.png").convert_alpha()
         self.spring_1 = pygame.image.load("data/spring_1.png").convert_alpha()
+        self.key = pygame.image.load("data/key.png").convert_alpha()
+        self.key_1 = pygame.image.load("data/lock.png").convert_alpha()
 
         # начальное положение главного героя
         self.playerx = 400
@@ -80,6 +82,7 @@ class Jumper:
         # основные параметры
         self.platforms = [[400, 500, 0, 0]]
         self.springs = []
+        self.keys = []
         # параметр изменения камеры по оси oY
         self.cameray = 0
         # высота прыжка
@@ -129,6 +132,8 @@ class Jumper:
         self.playerx += self.xmovement
         if self.playery - self.cameray <= 200:
             self.cameray -= 10
+
+        # изменение персонажа в зависимости от направления и расположения
         if not self.direction:
             if self.jump:
                 self.screen.blit(self.playerRight_1, (self.playerx, self.playery - self.cameray))
@@ -166,8 +171,11 @@ class Jumper:
     def drawPlatforms(self):
         """ отображение платформ"""
 
+        global key
         for p in self.platforms:
             check = self.platforms[1][1] - self.cameray
+
+            # разные вероятности появление того или иного объекта
             if check > 600:
                 platform = random.randint(0, 1000)
                 if platform < 800:
@@ -178,27 +186,63 @@ class Jumper:
                     platform = 2
                 self.platforms.append([random.randint(0, 700), self.platforms[-1][1] - 50, platform, 0])
                 coords = self.platforms[-1]
+
                 check = random.randint(0, 1000)
                 if check > 900 and platform == 0:
                     self.springs.append([coords[0], coords[1] - 25, 0])
                 self.platforms.pop(0)
+                if check > 700 and (platform == 1 or platform == 2):
+                    self.keys.append([coords[0], coords[1] - 10, 0])
+
+                # увеличение показателя счётчика очков
                 self.score += 7
+
+            # отображение основной платформы
             if p[2] == 0:
                 self.screen.blit(self.platform, (p[0], p[1] - self.cameray))
+
+            # отображение движущейся платформы
             elif p[2] == 1:
-                self.screen.blit(self.blue, (p[0], p[1] - self.cameray))
+                self.screen.blit(self.moving, (p[0], p[1] - self.cameray))
+
+            # отображение "лжеплатформы"
             elif p[2] == 2:
                 if not p[3]:
+
+                    # целая и нетронутая
                     self.screen.blit(self.broken, (p[0], p[1] - self.cameray))
                 else:
+
+                    # сломанная, тк на неё запрыгнули
                     self.screen.blit(self.broken_1, (p[0], p[1] - self.cameray))
+
+        # монетки
+        for key in self.keys:
+            if key[-1]:
+
+                # монетка собрана и превращена в замок
+
+                self.screen.blit(self.key_1, (key[0], key[1] - self.cameray))
+            else:
+
+                # несобранная монетка
+                self.screen.blit(self.key, (key[0], key[1] - self.cameray))
+
+            # изменение счётчика очков при касании ключа
+            if pygame.Rect(key[0], key[1], self.key.get_width(), self.key.get_height()).colliderect(
+                    pygame.Rect(self.playerx, self.playery, self.playerRight.get_width(),
+                                self.playerRight.get_height())):
+                self.score += 1234
 
         # работа с пружинами
         for spring in self.springs:
             if spring[-1]:
-                self.screen.blit(self.spring_1, (spring[0], spring[1] - self.cameray))
 
+                # сжатая пружина
+                self.screen.blit(self.spring_1, (spring[0], spring[1] - self.cameray))
             else:
+
+                # сработавшая пружина
                 self.screen.blit(self.spring, (spring[0], spring[1] - self.cameray))
 
             # изменение высоты прыжка при запрыгивании на пружину
@@ -255,10 +299,13 @@ class Jumper:
                 if event.type == QUIT:
                     sys.exit()
 
+            # проверка на падение игрока
             if self.playery - self.cameray > 700:
+                # сброс к начальным параметрам
                 self.cameray = 0
                 self.score = 0
                 self.springs = []
+                self.keys = []
                 self.platforms = [[400, 500, 0, 0]]
                 self.generatePlatforms()
                 self.playerx = 400
