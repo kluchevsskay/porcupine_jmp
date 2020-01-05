@@ -18,6 +18,29 @@ font_name = pygame.font.match_font('arial')
 WHITE = (255, 255, 255)
 
 
+class AnimatedSprite(pygame.sprite.Sprite):
+    def __init__(self, sheet, columns, rows, x, y):
+        super().__init__(all_sprites)
+        self.frames = []
+        self.cut_sheet(sheet, columns, rows)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.rect = self.rect.move(x, y)
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
+
+    def update(self):
+        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        self.image = self.frames[self.cur_frame]
+
+
 def draw_text(surf, text, size, x, y):
     font = pygame.font.Font(font_name, size)
     text_surface = font.render(text, True, WHITE)
@@ -41,6 +64,34 @@ def show_go_screen():
                 pygame.quit()
             if event.type == pygame.KEYUP:
                 waiting = False
+
+
+class Key(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image_orig = "data/key.png".convert_alpha()
+        self.image = self.image_orig.copy()
+        self.rect = self.image.get_rect()
+        self.radius = int(self.rect.width * .85 / 2)
+        self.rect.x = random.randrange(WIDTH - self.rect.width)
+        self.rect.y = random.randrange(-150, -100)
+        self.speedy = random.randrange(1, 8)
+        self.speedx = random.randrange(-3, 3)
+        self.rotation = 0
+        self.rotation_speed = random.randrange(-8, 8)
+        self.last_update = pygame.time.get_ticks()
+
+    def update(self):
+        self.rotationate()
+
+    def rotationate(self):
+        """ вращение ключей"""
+
+        now = pygame.time.get_ticks()
+        if now - self.last_update > 50:
+            self.last_update = now
+            self.rotation = (self.rotation + self.rotation_speed) % 360
+            self.image = pygame.transform.rotationate(self.image_orig, self.rotation)
 
 
 class Jumper:
@@ -72,8 +123,6 @@ class Jumper:
         self.playerLeft_1 = pygame.image.load("data/Melissa_Fall2_L.png").convert_alpha()
         self.spring = pygame.image.load("data/spring.png").convert_alpha()
         self.spring_1 = pygame.image.load("data/spring_1.png").convert_alpha()
-        self.key = pygame.image.load("data/key.png").convert_alpha()
-        self.key_1 = pygame.image.load("data/lock.png").convert_alpha()
 
         # начальное положение главного героя
         self.playerx = 400
@@ -93,6 +142,8 @@ class Jumper:
         self.gravity = 0
         # параметр горизонтального движения
         self.xmovement = 0
+
+        self.flag_key = 0
 
     def updatePlayer(self):
         """ движение главного героя, изменение его образа"""
@@ -218,21 +269,18 @@ class Jumper:
 
         # монетки
         for key in self.keys:
-            if key[-1]:
-
-                # монетка собрана и превращена в замок
-
-                self.screen.blit(self.key_1, (key[0], key[1] - self.cameray))
-            else:
-
+            self.flag_key = 0
+            if key[0]:
+                key = Key
                 # несобранная монетка
-                self.screen.blit(self.key, (key[0], key[1] - self.cameray))
+                self.screen.blit(screen, key[0], key[1])
 
             # изменение счётчика очков при касании ключа
             if pygame.Rect(key[0], key[1], self.key.get_width(), self.key.get_height()).colliderect(
                     pygame.Rect(self.playerx, self.playery, self.playerRight.get_width(),
-                                self.playerRight.get_height())):
+                                self.playerRight.get_height())) and self.flag_key == 0:
                 self.score += 1234
+                self.flag_key = 1
 
         # работа с пружинами
         for spring in self.springs:
@@ -260,16 +308,16 @@ class Jumper:
             x = random.randint(0, 700)
             platform = random.randint(0, 1000)
             if platform < 800:
-                # основная платформа
 
+                # основная платформа
                 platform = 0
             elif platform < 900:
-                # "лжеплатформа"
 
+                # "лжеплатформа"
                 platform = 1
             else:
-                # движущаяся платформа
 
+                # движущаяся платформа
                 platform = 2
 
             # генерация на случайной координате случайной платформы
