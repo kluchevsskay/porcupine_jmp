@@ -50,6 +50,8 @@ def draw_text(surf, text, size, x, y):
 
 
 def show_go_screen():
+    # theme_sound = pygame.mixer.Sound("data/theme.wav")
+    # theme_sound.play()
     draw_text(screen, "Начало!", 64, WIDTH / 2, HEIGHT / 4)
     draw_text(screen, "Используйте стрелки для премещения ", 22,
               WIDTH / 2, HEIGHT / 2)
@@ -69,7 +71,7 @@ def show_go_screen():
 class Key(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image_orig = "data/key.png".convert_alpha()
+        self.image_orig = pygame.image.load("data/key.png").convert_alpha()
         self.image = self.image_orig.copy()
         self.rect = self.image.get_rect()
         self.radius = int(self.rect.width * .85 / 2)
@@ -123,6 +125,13 @@ class Jumper:
         self.playerLeft_1 = pygame.image.load("data/Melissa_Fall2_L.png").convert_alpha()
         self.spring = pygame.image.load("data/spring.png").convert_alpha()
         self.spring_1 = pygame.image.load("data/spring_1.png").convert_alpha()
+        self.image_orig = pygame.image.load("data/key.png").convert_alpha()
+
+        # загрузка мелодий и звуков
+        self.broken_sound = pygame.mixer.Sound("data/broken.wav")
+        self.gameover_sound = pygame.mixer.Sound("data/game_over.wav")
+        self.spring_sound = pygame.mixer.Sound("data/spring.wav")
+        self.theme_sound = pygame.mixer.Sound("data/theme.wav")
 
         # начальное положение главного героя
         self.playerx = 400
@@ -266,17 +275,18 @@ class Jumper:
 
                     # сломанная, тк на неё запрыгнули
                     self.screen.blit(self.broken_1, (p[0], p[1] - self.cameray))
+                    self.broken_sound.play()
 
         # монетки
         for key in self.keys:
             self.flag_key = 0
             if key[0]:
-                key = Key
+                key_form = Key()
                 # несобранная монетка
-                self.screen.blit(screen, key[0], key[1])
+                self.screen.blit(screen, key_form.rect.x, key_form.rect.y)
 
             # изменение счётчика очков при касании ключа
-            if pygame.Rect(key[0], key[1], self.key.get_width(), self.key.get_height()).colliderect(
+            if pygame.Rect(key[0], key[1], self.image_orig.get_width(), self.image_orig.get_height()).colliderect(
                     pygame.Rect(self.playerx, self.playery, self.playerRight.get_width(),
                                 self.playerRight.get_height())) and self.flag_key == 0:
                 self.score += 1234
@@ -297,6 +307,7 @@ class Jumper:
             if pygame.Rect(spring[0], spring[1], self.spring.get_width(), self.spring.get_height()).colliderect(
                     pygame.Rect(self.playerx, self.playery, self.playerRight.get_width(),
                                 self.playerRight.get_height())):
+                self.spring_sound.play()
                 self.jump = 50
                 self.cameray -= 50
 
@@ -349,6 +360,8 @@ class Jumper:
 
             # проверка на падение игрока
             if self.playery - self.cameray > 700:
+                self.gameover_sound.play()
+
                 # сброс к начальным параметрам
                 self.cameray = 0
                 self.score = 0
