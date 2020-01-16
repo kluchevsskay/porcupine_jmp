@@ -50,8 +50,8 @@ def draw_text(surf, text, size, x, y):
 
 
 def show_go_screen():
-    # theme_sound = pygame.mixer.Sound("data/theme.wav")
-    # theme_sound.play()
+    theme_sound = pygame.mixer.Sound("data/theme.wav")
+    theme_sound.play()
     draw_text(screen, "Начало!", 64, WIDTH / 2, HEIGHT / 4)
     draw_text(screen, "Используйте стрелки для премещения ", 22,
               WIDTH / 2, HEIGHT / 2)
@@ -69,31 +69,19 @@ def show_go_screen():
 
 
 class Key(pygame.sprite.Sprite):
+    """ класс ключей-денег-называйтеЭтоКакХотите"""
+
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         self.image_orig = pygame.image.load("data/key.png").convert_alpha()
         self.image = self.image_orig.copy()
         self.rect = self.image.get_rect()
-        self.radius = int(self.rect.width * .85 / 2)
-        self.rect.x = random.randrange(WIDTH - self.rect.width)
-        self.rect.y = random.randrange(-150, -100)
-        self.speedy = random.randrange(1, 8)
-        self.speedx = random.randrange(-3, 3)
-        self.rotation = 0
-        self.rotation_speed = random.randrange(-8, 8)
-        self.last_update = pygame.time.get_ticks()
+        self.flag_taken = False
+        self.image.blit(screen, (30, 56))
 
-    def update(self):
-        self.rotationate()
-
-    def rotationate(self):
-        """ вращение ключей"""
-
-        now = pygame.time.get_ticks()
-        if now - self.last_update > 50:
-            self.last_update = now
-            self.rotation = (self.rotation + self.rotation_speed) % 360
-            self.image = pygame.transform.rotationate(self.image_orig, self.rotation)
+    def taken(self):
+        self.image = pygame.image.load("data/taken.png")
+        self.flag_taken = True
 
 
 class Jumper:
@@ -101,6 +89,7 @@ class Jumper:
     def __init__(self):
         """ конструктор + создание прайсов, экрана и т.д."""
 
+        self.flag_broken = True
         self.screen = pygame.display.set_mode((800, 600))
 
         self.platform = pygame.image.load("data/platform.png").convert_alpha()
@@ -130,7 +119,7 @@ class Jumper:
         # загрузка мелодий и звуков
         self.broken_sound = pygame.mixer.Sound("data/broken.wav")
         self.gameover_sound = pygame.mixer.Sound("data/game_over.wav")
-        self.spring_sound = pygame.mixer.Sound("data/spring.wav")
+        self.spring_sound = pygame.mixer.Sound("data/spring_melody.wav")
         self.theme_sound = pygame.mixer.Sound("data/theme.wav")
 
         # начальное положение главного героя
@@ -266,30 +255,33 @@ class Jumper:
                 self.screen.blit(self.moving, (p[0], p[1] - self.cameray))
 
             # отображение "лжеплатформы"
+
             elif p[2] == 2:
                 if not p[3]:
+                    self.flag_broken = False
 
-                    # целая и нетронутая
+                    # целая и нетронутая платформа
                     self.screen.blit(self.broken, (p[0], p[1] - self.cameray))
                 else:
 
                     # сломанная, тк на неё запрыгнули
                     self.screen.blit(self.broken_1, (p[0], p[1] - self.cameray))
-                    self.broken_sound.play()
-
+                    if not self.flag_broken:
+                        self.broken_sound.play()
+                        self.flag_broken = True
         # монетки
-        for key in self.keys:
+        for money in self.keys:
             self.flag_key = 0
-            if key[0]:
-                key_form = Key()
+            if money[0]:
                 # несобранная монетка
-                self.screen.blit(screen, key_form.rect.x, key_form.rect.y)
+                self.key_form = Key()
 
             # изменение счётчика очков при касании ключа
-            if pygame.Rect(key[0], key[1], self.image_orig.get_width(), self.image_orig.get_height()).colliderect(
-                    pygame.Rect(self.playerx, self.playery, self.playerRight.get_width(),
-                                self.playerRight.get_height())) and self.flag_key == 0:
-                self.score += 1234
+            if pygame.Rect(money[0], money[1], self.image_orig.get_width(),
+                           self.image_orig.get_height()).colliderect(
+                pygame.Rect(self.playerx, self.playery, self.playerRight.get_width(),
+                            self.playerRight.get_height())) and self.flag_key == 0:
+                self.key_form.taken()
                 self.flag_key = 1
 
         # работа с пружинами
