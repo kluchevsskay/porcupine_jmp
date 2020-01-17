@@ -80,7 +80,6 @@ class Key(pygame.sprite.Sprite):
         self.image.blit(screen, (30, 56))
 
     def taken(self):
-        self.image = pygame.image.load("data/taken.png")
         self.flag_taken = True
 
 
