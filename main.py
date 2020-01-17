@@ -50,7 +50,7 @@ def draw_text(surf, text, size, x, y):
 
 
 def show_go_screen():
-    theme_sound = pygame.mixer.Sound("data/theme.wav")
+    theme_sound = pygame.mixer.Sound("data/sounds/theme.wav")
     theme_sound.play()
     draw_text(screen, "Начало!", 64, WIDTH / 2, HEIGHT / 4)
     draw_text(screen, "Используйте стрелки для премещения ", 22,
@@ -73,7 +73,7 @@ class Key(pygame.sprite.Sprite):
 
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image_orig = pygame.image.load("data/key.png").convert_alpha()
+        self.image_orig = pygame.image.load("data/images/key.png").convert_alpha()
         self.image = self.image_orig.copy()
         self.rect = self.image.get_rect()
         self.flag_taken = False
@@ -91,7 +91,7 @@ class Jumper:
         self.flag_broken = True
         self.screen = pygame.display.set_mode((800, 600))
 
-        self.platform = pygame.image.load("data/platform.png").convert_alpha()
+        self.platform = pygame.image.load("data/images/platform.png").convert_alpha()
 
         pygame.font.init()
 
@@ -103,23 +103,23 @@ class Jumper:
 
         # прайсы и их изображения
         self.font = pygame.font.SysFont("Arial", 25)
-        self.platform = pygame.image.load("data/platform.png").convert_alpha()
-        self.moving = pygame.image.load("data/moving.png").convert_alpha()
-        self.broken = pygame.image.load("data/broken.png").convert_alpha()
-        self.broken_1 = pygame.image.load("data/broken_1.png").convert_alpha()
-        self.playerRight = pygame.image.load("data/Melissa_Jump2_R.png").convert_alpha()
-        self.playerRight_1 = pygame.image.load("data/Melissa_Fall2_R.png").convert_alpha()
-        self.playerLeft = pygame.image.load("data/Melissa_Jump2_L.png").convert_alpha()
-        self.playerLeft_1 = pygame.image.load("data/Melissa_Fall2_L.png").convert_alpha()
-        self.spring = pygame.image.load("data/spring.png").convert_alpha()
-        self.spring_1 = pygame.image.load("data/spring_1.png").convert_alpha()
-        self.image_orig = pygame.image.load("data/key.png").convert_alpha()
+        self.platform = pygame.image.load("data/images/platform.png").convert_alpha()
+        self.moving = pygame.image.load("data/images/moving.png").convert_alpha()
+        self.broken = pygame.image.load("data/images/broken.png").convert_alpha()
+        self.broken_1 = pygame.image.load("data/images/broken_1.png").convert_alpha()
+        self.playerRight = pygame.image.load("data/images/Melissa_Jump2_R.png").convert_alpha()
+        self.playerRight_1 = pygame.image.load("data/images/Melissa_Fall2_R.png").convert_alpha()
+        self.playerLeft = pygame.image.load("data/images/Melissa_Jump2_L.png").convert_alpha()
+        self.playerLeft_1 = pygame.image.load("data/images/Melissa_Fall2_L.png").convert_alpha()
+        self.spring = pygame.image.load("data/images/spring.png").convert_alpha()
+        self.spring_1 = pygame.image.load("data/images/spring_1.png").convert_alpha()
+        self.image_orig = pygame.image.load("data/images/key.png").convert_alpha()
 
         # загрузка мелодий и звуков
-        self.broken_sound = pygame.mixer.Sound("data/broken.wav")
-        self.gameover_sound = pygame.mixer.Sound("data/game_over.wav")
-        self.spring_sound = pygame.mixer.Sound("data/spring_melody.wav")
-        self.theme_sound = pygame.mixer.Sound("data/theme.wav")
+        self.broken_sound = pygame.mixer.Sound("data/sounds/broken.wav")
+        self.gameover_sound = pygame.mixer.Sound("data/sounds/game_over.wav")
+        self.spring_sound = pygame.mixer.Sound("data/sounds/spring_melody.wav")
+        self.theme_sound = pygame.mixer.Sound("data/sounds/theme.wav")
 
         # начальное положение главного героя
         self.playerx = 400
